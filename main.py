@@ -4,6 +4,7 @@ from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from constants import *
 from player import Player
+from bullet import Bullet
 
 def main():
     print("Initializing pygame")
@@ -21,6 +22,7 @@ def main():
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     Player.containers = (updatable, drawable) # TODO: How tf does this work?
+    Bullet.containers = (updatable, drawable)
     Asteroid.containers = (updatable, drawable, asteroids)
     AsteroidField.containers = (updatable)
 
@@ -35,6 +37,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                Bullet(player.position.x, player.position.y, player.get_forward())
 
         updatable.update(dt)
 
