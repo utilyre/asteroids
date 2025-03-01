@@ -37,3 +37,6 @@ class Player(CircleShape):
         b = self.position - forward * self.radius - right
         c = self.position - forward * self.radius + right
         return [a, b, c]
+
+    def __repr__(self):
+        return f"Player({self.position.x}, {self.position.y})"
