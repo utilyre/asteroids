@@ -5,8 +5,25 @@ from asteroidfield import AsteroidField
 from constants import *
 from player import Player
 from shot import Shot
+import socket
+from network import send_message
 
 def main():
+    print("Creating a connection to the server")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        print("Establishing the connection")
+        sock.connect(("localhost", 3000))
+        print("Connected to remote server")
+
+        msg = {}
+        msg["version"] = 1
+        msg["entity"] = "player"
+        msg["action"] = "move_forward"
+
+        print("Sending test message to server")
+        send_message(sock, msg)
+        print("Test message sent to server")
+
     print("Initializing pygame")
     success, failure = pygame.init()
     print(f"Successfully started {success} modules")
