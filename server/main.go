@@ -42,11 +42,7 @@ func monitorConn(r io.Reader, addr string) {
 	}
 
 	name := fmt.Sprintf("logs/traffic_%s.log", addr)
-	f, err := os.OpenFile(
-		name,
-		os.O_APPEND|os.O_WRONLY|os.O_CREATE,
-		0o644,
-	)
+	f, err := os.Create(name)
 	if err != nil {
 		slog.Error("failed to open logs file", "name", name, "error", err)
 		return

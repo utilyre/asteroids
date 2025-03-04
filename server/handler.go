@@ -13,7 +13,7 @@ func HandleConn(r io.Reader, conn net.Conn) {
 	for {
 		slog.Info("reading message from network", "remote", conn.RemoteAddr())
 
-		msg, err := ReadMessage(conn)
+		msg, err := ReadMessage(r)
 		if errors.Is(err, io.EOF) {
 			slog.Info("connection closed", "remote", conn.RemoteAddr())
 			break
