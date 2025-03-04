@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -32,39 +31,7 @@ func main() {
 		connReader := io.TeeReader(conn, monitorBuffer)
 
 		go monitorConn(monitorBuffer, conn.RemoteAddr().String())
-		go handleConn(connReader, conn)
-	}
-}
-
-func handleConn(r io.Reader, conn net.Conn) {
-	defer conn.Close()
-
-	for {
-		slog.Info("receiving string from network", "remote", conn.RemoteAddr())
-
-		msg, err := recvString(r)
-		if errors.Is(err, io.EOF) {
-			slog.Info("connection closed", "remote", conn.RemoteAddr())
-			break
-		}
-		if err != nil {
-			slog.Error("failed to read from connection",
-				"remote", conn.RemoteAddr(),
-				"error", err,
-			)
-			return
-		}
-
-		slog.Info("received message",
-			"remote", conn.RemoteAddr(),
-			"message", msg,
-		)
-
-		slog.Info("sending message over the network", "remote", conn.RemoteAddr())
-		if err := sendString(conn, msg); err != nil {
-			slog.Error("failed to send string over network", "remote", conn.RemoteAddr())
-			return
-		}
+		go HandleConn(connReader, conn)
 	}
 }
 

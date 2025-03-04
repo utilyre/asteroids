@@ -11,7 +11,7 @@ const (
 )
 
 type Vec2 struct {
-	x, y float64
+	X, Y float64
 }
 
 type Player struct {
@@ -23,11 +23,11 @@ type Player struct {
 func (p *Player) Move(dt float64, forward bool) {
 	forwardDir := p.getForward()
 	if forward {
-		p.Position.x += PLAYER_SPEED * forwardDir.x * dt
-		p.Position.y += PLAYER_SPEED * forwardDir.y * dt
+		p.Position.X += PLAYER_SPEED * forwardDir.X * dt
+		p.Position.Y += PLAYER_SPEED * forwardDir.Y * dt
 	} else {
-		p.Position.x -= PLAYER_SPEED * forwardDir.x * dt
-		p.Position.y -= PLAYER_SPEED * forwardDir.y * dt
+		p.Position.X -= PLAYER_SPEED * forwardDir.X * dt
+		p.Position.Y -= PLAYER_SPEED * forwardDir.Y * dt
 	}
 }
 
@@ -44,5 +44,5 @@ func (p *Player) Shoot() {
 }
 
 func (p *Player) getForward() Vec2 {
-	return Vec2{x: math.Cos(p.Rotation), y: math.Sin(p.Rotation)}
+	return Vec2{X: math.Cos(p.Rotation), Y: math.Sin(p.Rotation)}
 }

@@ -15,3 +15,10 @@ actions:
 - player rotate right/left
 - player move forward/backward
 - asteroid spawn (server)
+
+protocol:
+
+message:
+- version
+- entity
+- action

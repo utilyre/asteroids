@@ -7,8 +7,25 @@ import (
 	"log/slog"
 )
 
+func recvUInt64(r io.Reader) (uint64, error) {
+	var value uint64
+	if err := binary.Read(r, binary.BigEndian, &value); err != nil {
+		return 0, err
+	}
+
+	return value, nil
+}
+
+func sendUInt64(w io.Writer, value uint64) error {
+	if err := binary.Write(w, binary.BigEndian, value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func recvString(r io.Reader) (string, error) {
-	var size uint64
+	size, err := recvUInt64(r)
 	if err := binary.Read(r, binary.BigEndian, &size); err != nil {
 		return "", err
 	}
@@ -35,7 +52,7 @@ func sendString(w io.Writer, s string) error {
 	buf := []byte(s)
 	var size uint64 = uint64(len(buf))
 
-	if err := binary.Write(w, binary.BigEndian, size); err != nil {
+	if err := sendUInt64(w, size); err != nil {
 		return err
 	}
 
