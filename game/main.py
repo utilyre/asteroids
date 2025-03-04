@@ -30,6 +30,10 @@ def main():
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     asteroid_field = AsteroidField()
 
+    # all actions must be in player, right?
+    # oh shit, asteroid field also has actions
+    # but no, the server should spawn the asteroids
+
     clock = pygame.time.Clock()
     dt = 0
 
