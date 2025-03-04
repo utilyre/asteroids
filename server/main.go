@@ -41,7 +41,7 @@ func monitorConn(r io.Reader, addr string) {
 		return
 	}
 
-	name := fmt.Sprintf("traffic_%s.log", addr)
+	name := fmt.Sprintf("logs/traffic_%s.log", addr)
 	f, err := os.OpenFile(
 		name,
 		os.O_APPEND|os.O_WRONLY|os.O_CREATE,
@@ -51,7 +51,11 @@ func monitorConn(r io.Reader, addr string) {
 		slog.Error("failed to open logs file", "name", name, "error", err)
 		return
 	}
+	defer f.Close()
 
+	slog.Info("traffic logs file opened", "name", f.Name())
+
+	slog.Info("copying traffic to log file", "name", name)
 	_, err = io.Copy(f, r)
 	if err != nil {
 		slog.Error("failed to copy connection to traffic log file", "error", err)
