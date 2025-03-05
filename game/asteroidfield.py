@@ -1,5 +1,6 @@
 import pygame
 import random
+from network import send_message
 from asteroid import Asteroid
 from constants import *
 
@@ -28,13 +29,15 @@ class AsteroidField(pygame.sprite.Sprite):
         ],
     ]
 
-    def __init__(self):
+    def __init__(self, sock):
         pygame.sprite.Sprite.__init__(self, self.containers)
         self.spawn_timer = 0.0
+        self.sock = sock
 
     def spawn(self, radius, position, velocity):
         asteroid = Asteroid(position.x, position.y, radius)
         asteroid.velocity = velocity
+        send_message(self.sock, 1, "asteroid/spawn", b"TODO")
 
     def update(self, dt):
         self.spawn_timer += dt
