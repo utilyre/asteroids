@@ -1,9 +1,18 @@
 import struct
 
-def send_message(sock, msg):
-    send_integer(sock, msg["version"])
-    send_string(sock, msg["entity"])
-    send_string(sock, msg["action"])
+def send_message(sock, version, scope, body):
+    send_integer(sock, version)
+    send_string(sock, scope)
+    send_bytes(sock, body)
+
+def send_bytes(sock, value):
+    send_integer(sock, len(value))
+    sock.sendall(value)
+
+def recv_bytes(sock):
+    size = recv_integer(sock)
+    data = sock.recv(size)
+    return data
 
 def send_string(sock, value):
     encoded = value.encode("utf-8")

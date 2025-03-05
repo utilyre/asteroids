@@ -15,13 +15,8 @@ def main():
         sock.connect(("localhost", 3000))
         print("Connected to remote server")
 
-        msg = {}
-        msg["version"] = 1
-        msg["entity"] = "player"
-        msg["action"] = "move_forward"
-
         print("Sending test message to server")
-        send_message(sock, msg)
+        send_message(sock, 1, "hello/world", b"Hi there")
         print("Test message sent to server")
 
     print("Initializing pygame")

@@ -35,8 +35,8 @@ func HandleConn(r io.Reader, conn net.Conn) {
 
 type Message struct {
 	Version uint64
-	Entity  string
-	Action  string
+	Scope   string
+	Body    []byte
 }
 
 func ReadMessage(r io.Reader) (*Message, error) {
@@ -45,19 +45,19 @@ func ReadMessage(r io.Reader) (*Message, error) {
 		return nil, err
 	}
 
-	entity, err := recvString(r)
+	scope, err := recvBytes(r)
 	if err != nil {
 		return nil, err
 	}
 
-	action, err := recvString(r)
+	body, err := recvBytes(r)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Message{
 		Version: version,
-		Entity:  entity,
-		Action:  action,
+		Scope:   string(scope),
+		Body:    body,
 	}, nil
 }

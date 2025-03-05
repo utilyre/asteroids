@@ -24,42 +24,40 @@ func sendUInt64(w io.Writer, value uint64) error {
 	return nil
 }
 
-func recvString(r io.Reader) (string, error) {
+func recvBytes(r io.Reader) ([]byte, error) {
 	size, err := recvUInt64(r)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	slog.Debug("read a string size", "size", size)
+	slog.Debug("read a byte slice size", "size", size)
 	if size > 64 {
-		return "", errors.New("receiving an over-sized string")
+		return nil, errors.New("receiving over-sized bytes")
 	}
 
 	buf := make([]byte, size)
 	n, err := io.ReadFull(r, buf)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if uint64(n) < size {
 		panic("read bytes and pre-known size mismatch")
 	}
 
-	return string(buf), nil
+	return buf, nil
 }
 
-func sendString(w io.Writer, s string) error {
-	buf := []byte(s)
-	var size uint64 = uint64(len(buf))
-
+func sendBytes(w io.Writer, p []byte) error {
+	size := uint64(len(p))
 	if err := sendUInt64(w, size); err != nil {
 		return err
 	}
 
-	n, err := w.Write(buf)
+	n, err := w.Write(p)
 	if err != nil {
 		return err
 	}
 	if uint64(n) < size {
-		panic("written bytes and the size of string mismatch")
+		panic("written bytes and the size of bytes mismatch")
 	}
 
 	return nil
