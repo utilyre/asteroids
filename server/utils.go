@@ -26,15 +26,13 @@ func sendUInt64(w io.Writer, value uint64) error {
 
 func recvString(r io.Reader) (string, error) {
 	size, err := recvUInt64(r)
-	if err := binary.Read(r, binary.BigEndian, &size); err != nil {
+	if err != nil {
 		return "", err
 	}
+	slog.Debug("read a string size", "size", size)
 	if size > 64 {
-		slog.Debug("size", "size", size)
 		return "", errors.New("receiving an over-sized string")
 	}
-
-	slog.Info("read a string size", "size", size)
 
 	buf := make([]byte, size)
 	n, err := io.ReadFull(r, buf)
