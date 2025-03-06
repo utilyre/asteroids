@@ -1,0 +1,2 @@
+pygame==2.6.1
+structlog==25.1.0
