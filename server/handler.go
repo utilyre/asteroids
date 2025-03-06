@@ -1,37 +1,6 @@
 package main
 
-import (
-	"errors"
-	"io"
-	"log/slog"
-	"net"
-)
-
-func HandleConn(r io.Reader, conn net.Conn) {
-	defer conn.Close()
-
-	for {
-		slog.Info("reading message from network", "remote", conn.RemoteAddr())
-
-		msg, err := ReadMessage(r)
-		if errors.Is(err, io.EOF) {
-			slog.Info("connection closed", "remote", conn.RemoteAddr())
-			break
-		}
-		if err != nil {
-			slog.Error("failed to read message from connection",
-				"remote", conn.RemoteAddr(),
-				"error", err,
-			)
-			return
-		}
-
-		slog.Info("received message",
-			"remote", conn.RemoteAddr(),
-			"message", msg,
-		)
-	}
-}
+import "io"
 
 type Message struct {
 	Version uint64
@@ -40,17 +9,17 @@ type Message struct {
 }
 
 func ReadMessage(r io.Reader) (*Message, error) {
-	version, err := recvUInt64(r)
+	version, err := readUInt64(r)
 	if err != nil {
 		return nil, err
 	}
 
-	scope, err := recvBytes(r)
+	scope, err := readBytes(r)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := recvBytes(r)
+	body, err := readBytes(r)
 	if err != nil {
 		return nil, err
 	}
