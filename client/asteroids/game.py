@@ -22,7 +22,7 @@ class Game:
         self.drawable = pygame.sprite.Group()
         self.asteroids = pygame.sprite.Group()
         self.shots = pygame.sprite.Group()
-        objects.Player.containers = (self.updatable, self.drawable) # TODO: How tf does this work?
+        objects.Player.containers = (self.updatable, self.drawable)
         objects.Shot.containers = (self.updatable, self.drawable, self.shots)
         objects.Asteroid.containers = (self.updatable, self.drawable, self.asteroids)
         objects.AsteroidField.containers = (self.updatable)
