@@ -4,6 +4,15 @@ import asteroids.game as game
 
 log = structlog.get_logger()
 
+# TODO: send more events to the server
+#
+# e.g.
+# - asteroid split
+# - asteroid destroyed
+# - player moved
+# - player rotated
+# - player shot
+
 def main():
     log.info("initializing pygame")
     pygame_num_success, pygame_num_failure = pygame.init()
