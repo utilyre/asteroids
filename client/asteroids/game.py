@@ -1,3 +1,4 @@
+import sys
 import structlog
 import socket
 import pygame
