@@ -22,34 +22,37 @@ func (srv *Server) ListenAndServe() error {
 		addr = srv.Addr
 	}
 
+	logger := slog.With("address", addr)
+
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-	slog.Info("started listening", "address", addr)
+	logger.Info("started listening")
 
+	// serve
 	for {
-		slog.Info("waiting to accept a new connection", "address", addr)
+		logger.Info("waiting to accept a new connection")
 		conn, err := ln.Accept()
 		if err != nil {
-			slog.Error("failed to establish connection",
-				"address", addr,
-				"error", err,
-			)
+			logger.Error("failed to establish connection", "error", err)
 			continue
 		}
-		slog.Info("accepted connection", "remote", conn.RemoteAddr())
+		logger.Info("connection accepted", "remote", conn.RemoteAddr())
 
 		monitorBuffer := &bytes.Buffer{}
 		connReader := io.TeeReader(conn, monitorBuffer)
 
+		logger.Info("monitoring connection")
 		go srv.monitorConn(monitorBuffer, conn.RemoteAddr())
+
+		logger.Info("handling connection")
 		go srv.handleConn(connReader, conn)
 	}
 }
 
 func (srv *Server) handleConn(r io.Reader, conn net.Conn) {
-	defer conn.Close()
+	defer conn.Close() // TODO: return error or error group if function already failed
 
 	for {
 		slog.Info("reading message from network", "remote", conn.RemoteAddr())
@@ -75,28 +78,32 @@ func (srv *Server) handleConn(r io.Reader, conn net.Conn) {
 }
 
 func (srv *Server) monitorConn(r io.Reader, remote net.Addr) {
+	logger := slog.With("remote", remote)
+
 	logDir := "logs"
 	if len(srv.LogDir) > 0 {
 		logDir = srv.LogDir
 	}
 
 	if err := os.MkdirAll(logDir, 0o755); err != nil {
-		slog.Error("failed to make log directory", "remote", remote, "log_dir", logDir, "error", err)
+		logger.Error("failed to make log directory", "path", logDir, "error", err)
 		return
 	}
 
 	name := fmt.Sprintf("logs/traffic_%s.log", remote)
+	logger = logger.With("filename", name)
+
 	f, err := os.Create(name)
 	if err != nil {
-		slog.Error("failed to open log file", "remote", remote, "name", name, "error", err)
+		logger.Error("failed to create log file", "error", err)
 		return
 	}
 	defer f.Close() // TODO: return error or error group if function already failed
 
-	slog.Info("copying traffic to log file", "remote", remote, "name", name)
+	logger.Info("copying traffic to log file")
 	_, err = io.Copy(f, r)
 	if err != nil {
-		slog.Error("failed to copy connection to traffic log file", "remote", remote, "name", name, "error", err)
+		logger.Error("failed to copy traffic to log file", "error", err)
 	}
 }
 
