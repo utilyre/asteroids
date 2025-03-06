@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -76,6 +77,11 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 		}
 
 		slog.Info("received message", "message", msg)
+		var m map[string]any
+		if err := json.Unmarshal(msg.Body, &m); err != nil {
+			logger.Error("failed to unmarshal message body", "error", err)
+		}
+		logger.Info("unmarshaled message body", "body", m)
 
 		// TODO: dispatch message
 		// client says asteroid/spawn(position, velocity)
@@ -142,7 +148,7 @@ func readBytes(r io.Reader) ([]byte, error) {
 		return nil, err
 	}
 	slog.Debug("read a byte slice size", "size", size)
-	if size > 64 {
+	if size > 1024 {
 		return nil, errors.New("receiving over-sized bytes")
 	}
 

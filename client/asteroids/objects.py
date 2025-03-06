@@ -1,4 +1,5 @@
 import pygame
+import json
 import random
 import asteroids.config as config
 import asteroids.network as network
@@ -94,7 +95,18 @@ class AsteroidField(pygame.sprite.Sprite):
     def spawn(self, radius, position, velocity):
         asteroid = Asteroid(position.x, position.y, radius)
         asteroid.velocity = velocity
-        network.send_message(self.sock, 1, "asteroid/spawn", b"TODO")
+
+        payload = json.dumps({
+            "position": {
+                "x": position.x,
+                "y": position.y,
+            },
+            "velocity": {
+                "x": velocity.x,
+                "y": velocity.y,
+            },
+        })
+        network.send_message(self.sock, 1, "asteroid/spawn", payload.encode("utf-8"))
 
     def update(self, dt):
         self.spawn_timer += dt
