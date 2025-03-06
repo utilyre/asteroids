@@ -47,33 +47,35 @@ func (srv *Server) ListenAndServe() error {
 		go srv.monitorConn(monitorBuffer, conn.RemoteAddr())
 
 		logger.Info("handling connection")
-		go srv.handleConn(connReader, conn)
+		go func() {
+			defer func() {
+				if err := conn.Close(); err != nil {
+					logger.Error("failed to close connection", "error", err)
+				}
+			}()
+
+			srv.handleConn(connReader, conn.RemoteAddr())
+		}()
 	}
 }
 
-func (srv *Server) handleConn(r io.Reader, conn net.Conn) {
-	defer conn.Close() // TODO: return error or error group if function already failed
+func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
+	logger := slog.With("remote", remote)
 
 	for {
-		slog.Info("reading message from network", "remote", conn.RemoteAddr())
+		logger.Info("reading message from network")
 
 		msg, err := ReadMessage(r)
 		if errors.Is(err, io.EOF) {
-			slog.Info("connection closed", "remote", conn.RemoteAddr())
+			logger.Info("connection closed")
 			break
 		}
 		if err != nil {
-			slog.Error("failed to read message from connection",
-				"remote", conn.RemoteAddr(),
-				"error", err,
-			)
-			return
+			logger.Error("failed to read message from connection", "error", err)
+			continue
 		}
 
-		slog.Info("received message",
-			"remote", conn.RemoteAddr(),
-			"message", msg,
-		)
+		slog.Info("received message", "message", msg)
 	}
 }
 
@@ -98,7 +100,11 @@ func (srv *Server) monitorConn(r io.Reader, remote net.Addr) {
 		logger.Error("failed to create log file", "error", err)
 		return
 	}
-	defer f.Close() // TODO: return error or error group if function already failed
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil {
+			err = errors.Join(err, closeErr)
+		}
+	}()
 
 	logger.Info("copying traffic to log file")
 	_, err = io.Copy(f, r)
