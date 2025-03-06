@@ -76,6 +76,12 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 		}
 
 		slog.Info("received message", "message", msg)
+
+		// TODO: dispatch message
+		// client says asteroid/spawn(position, velocity)
+		// now, the server is ought to update its state
+		// so the server dispatches the message to the corresponding method (manually?)
+		// and the method updates state (maybe a response?) (but definitely log)
 	}
 }
 
