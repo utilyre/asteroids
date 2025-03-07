@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"strings"
 )
 
 type Server struct {
@@ -92,6 +93,10 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 type Handler func(ctx context.Context, body []byte) error
 
 func (srv *Server) Handle(scope string, handler Handler) {
+	if strings.ContainsRune(scope, ' ') {
+		panic("scope cannot contain spaces")
+	}
+
 	if srv.handlersMap == nil {
 		srv.handlersMap = map[string]Handler{}
 	}
@@ -110,10 +115,14 @@ func (srv *Server) dispatchMessage(msg *Message) error {
 
 	handler, exists := srv.handlersMap[msg.Scope]
 	if !exists {
-		return fmt.Errorf("no handler specified for scope: '%s'", msg.Scope)
+		return fmt.Errorf("no handler specified for scope: %s", msg.Scope)
 	}
 
-	return handler(context.TODO(), msg.Body)
+	if err := handler(context.TODO(), msg.Body); err != nil {
+		return fmt.Errorf("handle %s: %w", msg.Scope, err)
+	}
+
+	return nil
 
 	/* switch msg.Scope {
 	case "player.move_forward":
