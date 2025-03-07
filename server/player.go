@@ -20,23 +20,24 @@ type Player struct {
 	Cooldown float64
 }
 
-func (p *Player) Move(dt float64, forward bool) {
+func (p *Player) MoveForward(dt float64) { // TODO: how to sync dt between server and game?
 	forwardDir := p.getForward()
-	if forward {
-		p.Position.X += PLAYER_SPEED * forwardDir.X * dt
-		p.Position.Y += PLAYER_SPEED * forwardDir.Y * dt
-	} else {
-		p.Position.X -= PLAYER_SPEED * forwardDir.X * dt
-		p.Position.Y -= PLAYER_SPEED * forwardDir.Y * dt
-	}
+	p.Position.X += PLAYER_SPEED * forwardDir.X * dt
+	p.Position.Y += PLAYER_SPEED * forwardDir.Y * dt
 }
 
-func (p *Player) Rotate(dt float64, right bool) {
-	if right {
-		p.Rotation += PLAYER_TURN_SPEED * dt
-	} else {
-		p.Rotation -= PLAYER_TURN_SPEED * dt
-	}
+func (p *Player) MoveBackward(dt float64) {
+	forwardDir := p.getForward()
+	p.Position.X -= PLAYER_SPEED * forwardDir.X * dt
+	p.Position.Y -= PLAYER_SPEED * forwardDir.Y * dt
+}
+
+func (p *Player) RotateLeft(dt float64) {
+	p.Rotation -= PLAYER_TURN_SPEED * dt
+}
+
+func (p *Player) RotateRight(dt float64) {
+	p.Rotation += PLAYER_TURN_SPEED * dt
 }
 
 func (p *Player) Shoot() {

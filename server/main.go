@@ -17,12 +17,38 @@ func main() {
 
 	srv := &Server{Addr: ":3000"}
 
+	player := &Player{}
+
 	srv.Handle("player.move_forward", func(ctx context.Context, body []byte) error {
-		slog.Debug("⚠️ player moved forward")
+		player.MoveForward(0.16)
+		slog.Debug("player rotated left",
+			"position", player.Position,
+			"rotation", player.Rotation,
+		)
 		return nil
 	})
-	srv.Handle("asteroid.spawn", func(ctx context.Context, body []byte) error {
-		slog.Debug("⚠️ ASTEROID SPAWNED")
+	srv.Handle("player.move_backward", func(ctx context.Context, body []byte) error {
+		player.MoveBackward(0.16)
+		slog.Debug("player rotated left",
+			"position", player.Position,
+			"rotation", player.Rotation,
+		)
+		return nil
+	})
+	srv.Handle("player.rotate_left", func(ctx context.Context, body []byte) error {
+		player.RotateLeft(0.16)
+		slog.Debug("player rotated left",
+			"position", player.Position,
+			"rotation", player.Rotation,
+		)
+		return nil
+	})
+	srv.Handle("player.rotate_right", func(ctx context.Context, body []byte) error {
+		player.RotateRight(0.16)
+		slog.Debug("player rotated right",
+			"position", player.Position,
+			"rotation", player.Rotation,
+		)
 		return nil
 	})
 
