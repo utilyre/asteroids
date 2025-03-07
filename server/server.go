@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -14,12 +15,17 @@ import (
 type Server struct {
 	Addr   string
 	LogDir string
+
+	handlersMap map[string]Handler
 }
 
 func (srv *Server) ListenAndServe() error {
 	addr := "localhost:80"
 	if len(srv.Addr) > 0 {
 		addr = srv.Addr
+	}
+	if srv.handlersMap == nil {
+		srv.handlersMap = map[string]Handler{}
 	}
 
 	logger := slog.With("address", addr)
@@ -91,12 +97,33 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 	}
 }
 
+type Handler func(ctx context.Context, body []byte) error
+
+func (srv *Server) Handle(scope string, handler Handler) {
+	if srv.handlersMap == nil {
+		srv.handlersMap = map[string]Handler{}
+	}
+
+	if _, exists := srv.handlersMap[scope]; exists {
+		panic("scope already handled")
+	}
+
+	srv.handlersMap[scope] = handler
+}
+
 func (srv *Server) dispatchMessage(msg *Message) error {
 	if msg.Version != 1 {
 		return fmt.Errorf("unsupported message version: %d", msg.Version)
 	}
 
-	switch msg.Scope {
+	handler, exists := srv.handlersMap[msg.Scope]
+	if !exists {
+		return fmt.Errorf("no handler specified for scope: '%s'", msg.Scope)
+	}
+
+	return handler(context.TODO(), msg.Body)
+
+	/* switch msg.Scope {
 	case "player.move_forward":
 		slog.Debug("player moved forward")
 	case "player.move_backward":
@@ -107,9 +134,7 @@ func (srv *Server) dispatchMessage(msg *Message) error {
 		slog.Debug("player rotated right")
 	case "player.shoot":
 		slog.Debug("player shot")
-	}
-
-	return nil
+	} */
 }
 
 func (srv *Server) monitorConn(r io.Reader, remote net.Addr) {
