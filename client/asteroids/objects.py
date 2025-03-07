@@ -106,7 +106,7 @@ class AsteroidField(pygame.sprite.Sprite):
                 "y": velocity.y,
             },
         })
-        network.send_message(self.sock, 1, "asteroid/spawn", payload.encode("utf-8"))
+        network.send_message(self.sock, 1, "asteroid.spawn", payload.encode("utf-8"))
 
     def update(self, dt):
         self.spawn_timer += dt
@@ -123,8 +123,9 @@ class AsteroidField(pygame.sprite.Sprite):
             self.spawn(config.ASTEROID_MIN_RADIUS * kind, position, velocity)
 
 class Player(CircleShape):
-    def __init__(self, x, y):
+    def __init__(self, sock, x, y):
         super().__init__(x, y, config.PLAYER_RADIUS)
+        self.sock = sock
         self.rotation = 0
         self.cooldown = 0
 
@@ -150,6 +151,8 @@ class Player(CircleShape):
             self.shoot()
 
     def shoot(self):
+        network.send_message(self.sock, 1, "player.shoot", b"{}")
+
         if self.cooldown > 0:
             return
 
@@ -161,9 +164,19 @@ class Player(CircleShape):
         self.cooldown = config.PLAYER_SHOOT_COOLDOWN
 
     def rotate(self, dt):
+        if dt < 0:
+            network.send_message(self.sock, 1, "player.rotate_left", b"{}")
+        elif dt > 0:
+            network.send_message(self.sock, 1, "player.rotate_right", b"{}")
+
         self.rotation += config.PLAYER_TURN_SPEED * dt
 
     def move(self, dt):
+        if dt < 0:
+            network.send_message(self.sock, 1, "player.move_backward", b"{}")
+        elif dt > 0:
+            network.send_message(self.sock, 1, "player.move_forward", b"{}")
+
         forward = self.get_forward()
         self.position += config.PLAYER_SPEED * dt * forward
 

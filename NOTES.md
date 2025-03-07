@@ -1,3 +1,13 @@
+## API
+
+player.move_forward()
+player.move_backward()
+player.rotate_left()
+player.rotate_right()
+player.shoot()
+
+---
+
 game objects:
 
 - player

@@ -48,7 +48,7 @@ class Game:
         self.sock.close()
 
     def start(self):
-        player = objects.Player(config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2)
+        player = objects.Player(self.sock, config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2)
         asteroid_field = objects.AsteroidField(self.sock)
         log.info("initial game entities spawned")
 
