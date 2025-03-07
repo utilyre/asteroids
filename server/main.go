@@ -5,6 +5,13 @@ import (
 	"log/slog"
 )
 
+// TODO: the server should spawn the asteroids
+
+// client says asteroid/spawn(position, velocity)
+// now, the server is ought to update its state
+// so the server dispatches the message to the corresponding method (manually?)
+// and the method updates state (maybe a response?) (but definitely log)
+
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 

@@ -6,6 +6,9 @@ player.rotate_left()
 player.rotate_right()
 player.shoot()
 
+asteroid.spawn()
+asteroid.split() / asteroid.kill()
+
 ---
 
 game objects:

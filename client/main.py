@@ -4,23 +4,10 @@ import asteroids.game as game
 
 log = structlog.get_logger()
 
-# TODO: send more events to the server
-#
-# e.g.
-# - asteroid split
-# - asteroid destroyed
-# - player moved
-# - player rotated
-# - player shot
-
 def main():
     log.info("initializing pygame")
     pygame_num_success, pygame_num_failure = pygame.init()
     log.info("initialized pygame", num_success=pygame_num_success, num_failure=pygame_num_failure)
-
-    # all actions must be in player, right?
-    # oh shit, asteroid field also has actions
-    # but no, the server should spawn the asteroids
 
     with game.Game() as g:
         g.start()

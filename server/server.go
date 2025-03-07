@@ -83,14 +83,6 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 		logger := logger.With(slog.Group("message", "version", msg.Version, "scope", msg.Scope))
 		logger.Info("message received")
 
-		// TODO: dispatch message
-		//
-		// e.g.
-		// client says asteroid/spawn(position, velocity)
-		// now, the server is ought to update its state
-		// so the server dispatches the message to the corresponding method (manually?)
-		// and the method updates state (maybe a response?) (but definitely log)
-
 		if err := srv.dispatchMessage(msg); err != nil {
 			logger.Error("failed to dispatch message")
 		}
