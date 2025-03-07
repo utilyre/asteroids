@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -75,20 +74,42 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 			logger.Error("failed to read message from connection", "error", err)
 			continue
 		}
-
-		slog.Info("received message", "message", msg)
-		var m map[string]any
-		if err := json.Unmarshal(msg.Body, &m); err != nil {
-			logger.Error("failed to unmarshal message body", "error", err)
-		}
-		logger.Info("unmarshaled message body", "body", m)
+		logger := logger.With(slog.Group("message", "version", msg.Version, "scope", msg.Scope))
+		logger.Info("message received")
 
 		// TODO: dispatch message
+		//
+		// e.g.
 		// client says asteroid/spawn(position, velocity)
 		// now, the server is ought to update its state
 		// so the server dispatches the message to the corresponding method (manually?)
 		// and the method updates state (maybe a response?) (but definitely log)
+
+		if err := srv.dispatchMessage(msg); err != nil {
+			logger.Error("failed to dispatch message")
+		}
 	}
+}
+
+func (srv *Server) dispatchMessage(msg *Message) error {
+	if msg.Version != 1 {
+		return fmt.Errorf("unsupported message version: %d", msg.Version)
+	}
+
+	switch msg.Scope {
+	case "player.move_forward":
+		slog.Debug("player moved forward")
+	case "player.move_backward":
+		slog.Debug("player moved backward")
+	case "player.rotate_left":
+		slog.Debug("player rotated left")
+	case "player.rotate_right":
+		slog.Debug("player rotated right")
+	case "player.shoot":
+		slog.Debug("player shot")
+	}
+
+	return nil
 }
 
 func (srv *Server) monitorConn(r io.Reader, remote net.Addr) {
