@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -60,6 +61,7 @@ func main() {
 	srv := &Server{Addr: ":3000"}
 
 	var userCommandQueue []UserCommand
+	var userCommandMu sync.RWMutex
 
 	slog.Info("starting to sample user command queue")
 	go func() {
@@ -67,7 +69,9 @@ func main() {
 		defer ticker.Stop()
 
 		for {
+			userCommandMu.RLock()
 			slog.Debug("user command queue sampled", "queue", userCommandQueue)
+			userCommandMu.RUnlock()
 
 			select {
 			case <-ticker.C:
@@ -84,12 +88,17 @@ func main() {
 		defer ticker.Stop()
 
 		for {
+			userCommandMu.RLock()
 			if len(userCommandQueue) == 0 {
+				userCommandMu.RUnlock()
 				continue
 			}
+			uc := userCommandQueue[0]
+			userCommandMu.RUnlock()
 
-			var uc UserCommand
-			uc, userCommandQueue = userCommandQueue[0], userCommandQueue[1:]
+			userCommandMu.Lock()
+			userCommandQueue = userCommandQueue[1:]
+			userCommandMu.Unlock()
 
 			slog.Debug("user command consumed", "user_command", uc)
 
@@ -103,18 +112,26 @@ func main() {
 	}()
 
 	srv.Handle("player.move_forward", func(ctx context.Context, body []byte) error {
+		userCommandMu.Lock()
+		defer userCommandMu.Unlock()
 		userCommandQueue = append(userCommandQueue, PlayerMoveForward)
 		return nil
 	})
 	srv.Handle("player.move_backward", func(ctx context.Context, body []byte) error {
+		userCommandMu.Lock()
+		defer userCommandMu.Unlock()
 		userCommandQueue = append(userCommandQueue, PlayerMoveBackward)
 		return nil
 	})
 	srv.Handle("player.rotate_left", func(ctx context.Context, body []byte) error {
+		userCommandMu.Lock()
+		defer userCommandMu.Unlock()
 		userCommandQueue = append(userCommandQueue, PlayerRotateLeft)
 		return nil
 	})
 	srv.Handle("player.rotate_right", func(ctx context.Context, body []byte) error {
+		userCommandMu.Lock()
+		defer userCommandMu.Unlock()
 		userCommandQueue = append(userCommandQueue, PlayerRotateRight)
 		return nil
 	})
