@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 	"time"
 )
 
@@ -40,7 +41,19 @@ const (
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	// WARN: this configuration is for development only
+	slog.SetDefault(slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				if a.Key == "time" {
+					return slog.Attr{}
+				}
+				return a
+			},
+		}),
+	))
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
