@@ -95,11 +95,8 @@ func setupServer(userCommandQueue chan<- UserCommand) *Server {
 	srv := &Server{Addr: ":3000"}
 
 	enqueueCmd := func(cmd UserCommand) {
-		select {
-		case userCommandQueue <- cmd:
-		default:
-			slog.Debug("missed user command", "cmd", cmd)
-		}
+		// TODO: timeout only if it becomes a bottle neck
+		userCommandQueue <- cmd
 	}
 
 	srv.Handle("player.move_forward", func(ctx context.Context, body []byte) error {
