@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"time"
 )
 
 // TODO: the server should spawn the asteroids
@@ -19,53 +20,60 @@ func TODO() {
 
 	// game loop
 	for {
-		// recv inputs
+		// process user commands
 
-		// simulate world
+		// run physical simulation step
 
-		// send snapshot
+		// check game rules
 
-		// maintain a constant rate
+		// broadcast update
 	}
 }
 
+type UserCommand string
+
+const (
+	PlayerMoveForward  UserCommand = "player.move_forward"
+	PlayerMoveBackward UserCommand = "player.move_backward"
+	PlayerRotateLeft   UserCommand = "player.rotate_left"
+	PlayerRotateRight  UserCommand = "player.rotate_right"
+)
+
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	srv := &Server{Addr: ":3000"}
 
-	player := &Player{}
+	var userCommandQueue []UserCommand
+
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				slog.Debug("user command queue sampled", "queue", userCommandQueue)
+			case <-ctx.Done():
+				break
+			}
+		}
+	}()
 
 	srv.Handle("player.move_forward", func(ctx context.Context, body []byte) error {
-		player.MoveForward(0.16)
-		slog.Debug("player rotated left",
-			"position", player.Position,
-			"rotation", player.Rotation,
-		)
+		userCommandQueue = append(userCommandQueue, PlayerMoveForward)
 		return nil
 	})
 	srv.Handle("player.move_backward", func(ctx context.Context, body []byte) error {
-		player.MoveBackward(0.16)
-		slog.Debug("player rotated left",
-			"position", player.Position,
-			"rotation", player.Rotation,
-		)
+		userCommandQueue = append(userCommandQueue, PlayerMoveBackward)
 		return nil
 	})
 	srv.Handle("player.rotate_left", func(ctx context.Context, body []byte) error {
-		player.RotateLeft(0.16)
-		slog.Debug("player rotated left",
-			"position", player.Position,
-			"rotation", player.Rotation,
-		)
+		userCommandQueue = append(userCommandQueue, PlayerRotateLeft)
 		return nil
 	})
 	srv.Handle("player.rotate_right", func(ctx context.Context, body []byte) error {
-		player.RotateRight(0.16)
-		slog.Debug("player rotated right",
-			"position", player.Position,
-			"rotation", player.Rotation,
-		)
+		userCommandQueue = append(userCommandQueue, PlayerRotateRight)
 		return nil
 	})
 
