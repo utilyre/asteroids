@@ -194,7 +194,6 @@ func readBytes(r io.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	slog.Debug("read a byte slice size", "size", size)
 	if size > 1024 {
 		return nil, errors.New("receiving over-sized bytes")
 	}

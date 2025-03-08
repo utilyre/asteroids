@@ -151,7 +151,7 @@ class Player(CircleShape):
             self.shoot()
 
     def shoot(self):
-        network.send_message(self.sock, 1, "player.shoot", b"{}")
+        # network.send_message(self.sock, 1, "player.shoot", b"{}")
 
         if self.cooldown > 0:
             return
