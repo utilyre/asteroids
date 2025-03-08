@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -58,12 +57,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	srv := &Server{Addr: ":3000"}
-
-	var userCommandQueue []UserCommand
-	var userCommandMu sync.RWMutex
-
-	slog.Info("starting to sample user command queue")
+	/* slog.Info("starting to sample user command queue")
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
@@ -80,63 +74,62 @@ func main() {
 				break
 			}
 		}
-	}()
+	}() */
 
-	slog.Info("starting simulation loop")
+	userCommandQueue := make(chan UserCommand, 1)
+	defer close(userCommandQueue)
+
+	srv := setupServer(userCommandQueue)
+	slog.Info("starting server")
 	go func() {
-		ticker := time.NewTicker(time.Second / 60)
-		defer ticker.Stop()
-
-		for {
-			userCommandMu.RLock()
-			if len(userCommandQueue) == 0 {
-				userCommandMu.RUnlock()
-				continue
-			}
-			uc := userCommandQueue[0]
-			userCommandMu.RUnlock()
-
-			userCommandMu.Lock()
-			userCommandQueue = userCommandQueue[1:]
-			userCommandMu.Unlock()
-
-			slog.Debug("user command consumed", "user_command", uc)
-
-			select {
-			case <-ticker.C:
-			case <-ctx.Done():
-				slog.Info("stopped simulation loop")
-				break
-			}
+		if err := srv.ListenAndServe(); err != nil {
+			slog.Error("failed to listen and serve", "error", err)
 		}
 	}()
 
+	slog.Info("starting simulation loop")
+	simulate(ctx, userCommandQueue)
+}
+
+func setupServer(userCommandQueue chan<- UserCommand) *Server {
+	srv := &Server{Addr: ":3000"}
+
 	srv.Handle("player.move_forward", func(ctx context.Context, body []byte) error {
-		userCommandMu.Lock()
-		defer userCommandMu.Unlock()
-		userCommandQueue = append(userCommandQueue, PlayerMoveForward)
+		userCommandQueue <- PlayerMoveForward
 		return nil
 	})
 	srv.Handle("player.move_backward", func(ctx context.Context, body []byte) error {
-		userCommandMu.Lock()
-		defer userCommandMu.Unlock()
-		userCommandQueue = append(userCommandQueue, PlayerMoveBackward)
+		userCommandQueue <- PlayerMoveBackward
 		return nil
 	})
 	srv.Handle("player.rotate_left", func(ctx context.Context, body []byte) error {
-		userCommandMu.Lock()
-		defer userCommandMu.Unlock()
-		userCommandQueue = append(userCommandQueue, PlayerRotateLeft)
+		userCommandQueue <- PlayerRotateLeft
 		return nil
 	})
 	srv.Handle("player.rotate_right", func(ctx context.Context, body []byte) error {
-		userCommandMu.Lock()
-		defer userCommandMu.Unlock()
-		userCommandQueue = append(userCommandQueue, PlayerRotateRight)
+		userCommandQueue <- PlayerRotateRight
 		return nil
 	})
 
-	if err := srv.ListenAndServe(); err != nil {
-		slog.Error("failed to listen and serve", "error", err)
+	return srv
+}
+
+func simulate(ctx context.Context, userCommandQueue <-chan UserCommand) {
+	ticker := time.NewTicker(time.Second / 60)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case uc := <-userCommandQueue:
+			slog.Debug("user command consumed", "user_command", uc)
+		default:
+		}
+
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			slog.Info("stopped simulation loop")
+			break
+		}
 	}
 }

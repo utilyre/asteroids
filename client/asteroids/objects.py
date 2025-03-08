@@ -106,7 +106,7 @@ class AsteroidField(pygame.sprite.Sprite):
                 "y": velocity.y,
             },
         })
-        network.send_message(self.sock, 1, "asteroid.spawn", payload.encode("utf-8"))
+        # network.send_message(self.sock, 1, "asteroid.spawn", payload.encode("utf-8"))
 
     def update(self, dt):
         self.spawn_timer += dt
