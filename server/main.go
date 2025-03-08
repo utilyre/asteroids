@@ -50,6 +50,8 @@ func main() {
 
 	go func() {
 		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
 		for {
 			select {
 			case <-ticker.C:
@@ -57,6 +59,24 @@ func main() {
 			case <-ctx.Done():
 				break
 			}
+		}
+	}()
+
+	go func() {
+		ticker := time.NewTicker(time.Second / 30)
+		defer ticker.Stop()
+
+		for {
+			if len(userCommandQueue) == 0 {
+				continue
+			}
+
+			var uc UserCommand
+			uc, userCommandQueue = userCommandQueue[0], userCommandQueue[1:]
+
+			slog.Debug("user command consumed", "user_command", uc)
+
+			<-ticker.C
 		}
 	}()
 
