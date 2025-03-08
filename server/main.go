@@ -12,6 +12,23 @@ import (
 // so the server dispatches the message to the corresponding method (manually?)
 // and the method updates state (maybe a response?) (but definitely log)
 
+func TODO() {
+	// client gotta keep track of last snapshot and current snapshot
+	// then interpolate from frameTime-interpTime to frameTime
+	// (instead of interpolating from the last snapshot's time to frameTime)
+
+	// game loop
+	for {
+		// recv inputs
+
+		// simulate world
+
+		// send snapshot
+
+		// maintain a constant rate
+	}
+}
+
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 

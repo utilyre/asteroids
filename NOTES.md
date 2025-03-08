@@ -9,6 +9,11 @@ player.shoot()
 asteroid.spawn()
 asteroid.split() / asteroid.kill()
 
+## Resources
+
+- [How to handle delta time correctly](https://www.reddit.com/r/gamedev/comments/1embud0/how_to_handle_delta_time_correctly_in_multiplayer/)
+- [Source Multiplayer Networking](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking)
+
 ---
 
 game objects:
