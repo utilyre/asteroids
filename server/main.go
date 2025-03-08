@@ -94,20 +94,28 @@ func main() {
 func setupServer(userCommandQueue chan<- UserCommand) *Server {
 	srv := &Server{Addr: ":3000"}
 
+	enqueueCmd := func(cmd UserCommand) {
+		select {
+		case userCommandQueue <- cmd:
+		default:
+			slog.Debug("missed user command", "cmd", cmd)
+		}
+	}
+
 	srv.Handle("player.move_forward", func(ctx context.Context, body []byte) error {
-		userCommandQueue <- PlayerMoveForward
+		enqueueCmd(PlayerMoveForward)
 		return nil
 	})
 	srv.Handle("player.move_backward", func(ctx context.Context, body []byte) error {
-		userCommandQueue <- PlayerMoveBackward
+		enqueueCmd(PlayerMoveBackward)
 		return nil
 	})
 	srv.Handle("player.rotate_left", func(ctx context.Context, body []byte) error {
-		userCommandQueue <- PlayerRotateLeft
+		enqueueCmd(PlayerRotateLeft)
 		return nil
 	})
 	srv.Handle("player.rotate_right", func(ctx context.Context, body []byte) error {
-		userCommandQueue <- PlayerRotateRight
+		enqueueCmd(PlayerRotateRight)
 		return nil
 	})
 
