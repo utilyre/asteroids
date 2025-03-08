@@ -48,22 +48,26 @@ func main() {
 
 	var userCommandQueue []UserCommand
 
+	slog.Info("starting to sample user command queue")
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 
 		for {
+			slog.Debug("user command queue sampled", "queue", userCommandQueue)
+
 			select {
 			case <-ticker.C:
-				slog.Debug("user command queue sampled", "queue", userCommandQueue)
 			case <-ctx.Done():
+				slog.Info("stopped sampling user command queue")
 				break
 			}
 		}
 	}()
 
+	slog.Info("starting simulation loop")
 	go func() {
-		ticker := time.NewTicker(time.Second / 30)
+		ticker := time.NewTicker(time.Second / 60)
 		defer ticker.Stop()
 
 		for {
@@ -76,7 +80,12 @@ func main() {
 
 			slog.Debug("user command consumed", "user_command", uc)
 
-			<-ticker.C
+			select {
+			case <-ticker.C:
+			case <-ctx.Done():
+				slog.Info("stopped simulation loop")
+				break
+			}
 		}
 	}()
 

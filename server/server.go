@@ -39,7 +39,7 @@ func (srv *Server) ListenAndServe() error {
 
 	// serve
 	for {
-		logger.Info("waiting to accept a new connection")
+		logger.Debug("waiting to accept a new connection")
 		conn, err := ln.Accept()
 		if err != nil {
 			logger.Error("failed to establish connection", "error", err)
@@ -50,10 +50,10 @@ func (srv *Server) ListenAndServe() error {
 		monitorBuffer := &bytes.Buffer{}
 		connReader := io.TeeReader(conn, monitorBuffer)
 
-		logger.Info("monitoring connection")
+		logger.Debug("monitoring connection")
 		go srv.monitorConn(monitorBuffer, conn.RemoteAddr())
 
-		logger.Info("handling connection")
+		logger.Debug("handling connection")
 		go func() {
 			defer func() {
 				if err := conn.Close(); err != nil {
@@ -70,7 +70,7 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 	logger := slog.With("remote", remote)
 
 	for {
-		logger.Info("reading message from network")
+		logger.Debug("reading message from network")
 
 		msg, err := ReadMessage(r)
 		if errors.Is(err, io.EOF) {
@@ -82,10 +82,10 @@ func (srv *Server) handleConn(r io.Reader, remote net.Addr) {
 			continue
 		}
 		logger := logger.With(slog.Group("message", "version", msg.Version, "scope", msg.Scope))
-		logger.Info("message received")
+		logger.Debug("message received")
 
 		if err := srv.dispatchMessage(msg); err != nil {
-			logger.Error("failed to dispatch message")
+			logger.Warn("failed to dispatch message")
 		}
 	}
 }
